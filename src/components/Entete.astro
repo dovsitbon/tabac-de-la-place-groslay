@@ -1,0 +1,45 @@
+---
+import Carotte from './Carotte.astro';
+import { SITE } from '../data/site';
+const accueil = Astro.url.pathname === '/';
+const p = accueil ? '' : '/';
+const liens = [
+  ['Le café-bar', `${p}#cafe`],
+  ['Tabac & services', `${p}#tabac`],
+  ['Les gérants', `${p}#gerants`],
+  ['Avis', `${p}#avis`],
+  ['Horaires & accès', `${p}#infos`],
+];
+---
+<header class="entete border-b-2 border-noir">
+  <div class="wrap flex items-start justify-between gap-4">
+    <a href="/" class="marque flex items-start gap-3 no-underline min-h-[44px]" aria-label={`${SITE.nom}, accueil`}>
+      <Carotte class="w-[30px] md:w-[36px] h-auto -mt-[2px] shrink-0" />
+      <span class="pt-3 md:pt-4 pb-3">
+        <span class="block font-affiche text-[1.55rem] md:text-[1.9rem] leading-none tracking-[.01em]">{SITE.nom}</span>
+        <span class="block text-[.9rem] md:text-[.95rem] text-zinc-fonce mt-1">{SITE.adresse.rue}<span class="hidden sm:inline">, Groslay</span></span>
+      </span>
+    </a>
+    <nav aria-label="Navigation principale" class="hidden lg:block pt-4">
+      <ul class="flex items-center gap-1">
+        {liens.map(([t, h]) => <li><a href={h} class="lien-nav">{t}</a></li>)}
+        <li class="ml-3"><a href={`tel:${SITE.telLien}`} class="btn btn-rouge !min-h-[44px] !text-[1rem]">Appeler</a></li>
+      </ul>
+    </nav>
+    <details class="menu lg:hidden pt-3 relative">
+      <summary class="btn btn-creme !min-h-[44px] !px-4 !text-[1rem] list-none">Menu</summary>
+      <ul class="papier absolute right-0 top-[calc(100%+.5rem)] z-30 w-[min(17rem,calc(100vw-2rem))] border-2 border-noir p-2">
+        {liens.map(([t, h]) => <li><a href={h} class="block px-3 py-3 min-h-[44px] no-underline hover:bg-jaune">{t}</a></li>)}
+      </ul>
+    </details>
+  </div>
+</header>
+<style>
+  .lien-nav { display: inline-flex; align-items: center; min-height: 44px; padding: 0 .7rem; text-decoration: none; font-weight: 600; font-size: 1rem; }
+  .lien-nav:hover { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; text-decoration-color: var(--color-carotte); }
+  .menu summary::-webkit-details-marker { display: none; }
+</style>
+<script>
+  // Ferme le menu mobile après un clic sur un lien.
+  document.querySelectorAll('details.menu a').forEach((a) => a.addEventListener('click', () => a.closest('details')?.removeAttribute('open')));
+</script>

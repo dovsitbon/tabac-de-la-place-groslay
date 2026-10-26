@@ -1,0 +1,100 @@
+---
+import '../styles/global.css';
+import Entete from '../components/Entete.astro';
+import Pied from '../components/Pied.astro';
+import BarreMobile from '../components/BarreMobile.astro';
+import { SITE, HORAIRES } from '../data/site';
+import aujourdhui from '../data/aujourdhui.json';
+import type { Aujourdhui } from '../scripts/horaires';
+
+interface Props { title: string; description: string; noindex?: boolean }
+const { title, description, noindex = false } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const og = new URL('/og.png', Astro.site);
+const D = aujourdhui as Aujourdhui;
+
+const JOURS_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+// Regroupe les jours qui ont la même plage pour un JSON-LD compact.
+const groupes = new Map<string, string[]>();
+for (const h of HORAIRES) for (const [o, c] of h.plages) {
+  const k = `${o}-${c}`;
+  groupes.set(k, [...(groupes.get(k) ?? []), JOURS_EN[h.jour]]);
+}
+const auj = new Date().toISOString().slice(0, 10);
+const special = [
+  ...(D.fermetures ?? []).filter((f) => (f.au || f.du) >= auj).map((f) => ({ '@type': 'OpeningHoursSpecification', opens: '00:00', closes: '00:00', validFrom: f.du, validThrough: f.au || f.du, ...(f.motif ? { description: f.motif } : {}) })),
+  ...(D.horairesModifies ?? []).filter((m) => m.date >= auj).flatMap((m) => {
+    const plages = m.plages ?? (m.ouvre && m.ferme ? [[m.ouvre, m.ferme]] : [['00:00', '00:00']]);
+    return plages.map(([o, c]) => ({ '@type': 'OpeningHoursSpecification', opens: o, closes: c, validFrom: m.date, validThrough: m.date }));
+  }),
+];
+
+const lieu = {
+  '@context': 'https://schema.org',
+  '@type': ['BarOrPub', 'Store'],
+  '@id': new URL('/#lieu', Astro.site).href,
+  name: SITE.nom,
+  description: 'Café-bar-tabac du centre de Groslay : café dès le matin, bière, vin et boissons au comptoir, tabac, jeux d’arcade.',
+  url: new URL('/', Astro.site).href,
+  telephone: SITE.telLien,
+  image: og.href,
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: SITE.adresse.rue,
+    postalCode: SITE.adresse.cp,
+    addressLocality: SITE.adresse.ville,
+    addressRegion: SITE.adresse.region,
+    addressCountry: SITE.adresse.pays,
+  },
+  areaServed: [SITE.adresse.ville, ...SITE.voisines].map((n) => ({ '@type': 'City', name: n })),
+  openingHoursSpecification: [...groupes].map(([k, jours]) => {
+    const [opens, closes] = k.split('-');
+    return { '@type': 'OpeningHoursSpecification', dayOfWeek: jours, opens, closes };
+  }),
+  ...(special.length ? { specialOpeningHoursSpecification: special } : {}),
+  paymentAccepted: 'Carte bancaire, paiement sans contact',
+  currenciesAccepted: 'EUR',
+  aggregateRating: { '@type': 'AggregateRating', ratingValue: SITE.noteNum, bestRating: 5, ratingCount: SITE.nbAvis },
+  ...(SITE.sameAs.length ? { sameAs: SITE.sameAs } : {}),
+};
+---
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#c9cdd0" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:site_name" content={`${SITE.nom}, Groslay`} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={og} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Tabac de la Place, café-bar-tabac au 9 rue du Général Leclerc à Groslay" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <script type="application/ld+json" set:html={JSON.stringify(lieu)} />
+    <slot name="head" />
+  </head>
+  <body class="min-h-dvh flex flex-col">
+    <a href="#contenu" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-creme focus:px-4 focus:py-3 focus:font-semibold">Aller au contenu</a>
+    <Entete />
+    <main id="contenu" class="flex-1">
+      <slot />
+    </main>
+    <Pied />
+    <BarreMobile />
+    <script>
+      import '../scripts/client';
+    </script>
+  </body>
+</html>

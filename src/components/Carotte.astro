@@ -1,0 +1,14 @@
+---
+// Enseigne « carotte » de tabac, dessinée librement (ce n'est pas le logo officiel).
+interface Props { class?: string; lettres?: boolean }
+const { class: cls = '', lettres = true } = Astro.props;
+const L = ['T', 'A', 'B', 'A', 'C'];
+---
+<svg class={cls} viewBox="0 0 48 132" aria-hidden="true" focusable="false">
+  <path d="M2 4h30M24 4v10" stroke="#151515" stroke-width="3" stroke-linecap="round" fill="none" />
+  <path d="M24 14 L41 36 Q43 39 43 43 L43 89 Q43 93 41 96 L24 118 L7 96 Q5 93 5 89 L5 43 Q5 39 7 36 Z" fill="#C9241A" stroke="#151515" stroke-width="2.5" stroke-linejoin="round" />
+  <path d="M24 22 L37 39 L37 93 L24 110" fill="none" stroke="#a51c14" stroke-width="2" />
+  {lettres && L.map((l, i) => (
+    <text x="21.5" y={50 + i * 11} text-anchor="middle" font-family="Anton, Impact, sans-serif" font-size="11" fill="#F3EBDA">{l}</text>
+  ))}
+</svg>

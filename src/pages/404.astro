@@ -1,0 +1,15 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../data/site';
+---
+<Base title="Page introuvable | Tabac de la Place, Groslay" description="Cette page n'existe pas. Retrouvez les horaires du jour du Tabac de la Place, 9 rue du Général Leclerc à Groslay." noindex>
+  <section class="wrap py-20 md:py-28 max-w-3xl">
+    <p class="font-affiche text-[7rem] md:text-[10rem] leading-none text-carotte" aria-hidden="true">404</p>
+    <h1 class="mt-4 text-[2.4rem] md:text-[3.2rem] uppercase">Cette page n’existe pas</h1>
+    <p class="mt-5 text-[1.15rem]">Les horaires du jour et l’adresse sont sur la page d’accueil.</p>
+    <div class="mt-8 flex flex-wrap gap-3">
+      <a href="/" class="btn btn-rouge">Voir les horaires du jour</a>
+      <a href={`tel:${SITE.telLien}`} class="btn btn-creme">Appeler le {SITE.telAffiche}</a>
+    </div>
+  </section>
+</Base>

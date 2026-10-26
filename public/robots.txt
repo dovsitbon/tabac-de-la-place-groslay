@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tabac-de-la-place-groslay.vercel.app/sitemap-index.xml

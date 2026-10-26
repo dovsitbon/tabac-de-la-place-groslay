@@ -1,0 +1,19 @@
+---
+import PageTexte from '../components/PageTexte.astro';
+import { SITE } from '../data/site';
+---
+<PageTexte title="Confidentialité | Tabac de la Place, Groslay" description="Politique de confidentialité du site du Tabac de la Place à Groslay : aucun cookie, aucun traceur, aucun formulaire. Carte Google chargée seulement à la demande." h1="Confidentialité">
+  <p>Ce site ne collecte aucune donnée personnelle : pas de formulaire, pas de compte, pas de mesure d’audience, pas de cookie publicitaire. C’est pour cela qu’aucun bandeau cookies ne s’affiche.</p>
+
+  <h2>Carte Google Maps</h2>
+  <p>La carte de la rubrique « Horaires et accès » n’est chargée que si vous cliquez sur « Afficher la carte Google ». Google peut alors déposer des cookies et recevoir votre adresse IP, selon sa propre <a href="https://policies.google.com/privacy?hl=fr" target="_blank" rel="noopener">politique de confidentialité</a>. Les liens « Itinéraire » ouvrent Google Maps dans un nouvel onglet, aux mêmes conditions.</p>
+
+  <h2>Hébergement</h2>
+  <p>Le site est hébergé par Vercel Inc. Comme tout hébergeur, Vercel peut enregistrer des journaux techniques (adresse IP, page demandée, date) pour assurer la sécurité et le bon fonctionnement du service.</p>
+
+  <h2>Appels</h2>
+  <p>Les boutons « Appeler » ouvrent simplement l’application téléphone de votre appareil avec le numéro {SITE.telAffiche}. Aucune information ne transite par ce site.</p>
+
+  <h2>Vos droits</h2>
+  <p>Pour toute question : {SITE.nom}, {SITE.adresseTexte}, téléphone {SITE.telAffiche}. Vous pouvez aussi saisir la CNIL (<a href="https://www.cnil.fr" target="_blank" rel="noopener">cnil.fr</a>).</p>
+</PageTexte>

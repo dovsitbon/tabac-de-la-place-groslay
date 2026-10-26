@@ -1,0 +1,35 @@
+---
+import { SITE } from '../data/site';
+---
+<div class="carte relative w-full min-w-0 aspect-[4/3] md:aspect-[16/11] border-2 border-noir overflow-hidden bg-zinc-clair" data-carte>
+  <svg class="absolute inset-0 w-full h-full" viewBox="0 0 400 275" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <rect width="400" height="275" fill="#dcdfe1" />
+    <path d="M-10 170 L 410 120" stroke="#f3ebda" stroke-width="26" fill="none" />
+    <path d="M-10 170 L 410 120" stroke="#9aa0a5" stroke-width="1.5" stroke-dasharray="9 8" fill="none" />
+    <path d="M150 -10 L 175 290" stroke="#f3ebda" stroke-width="12" fill="none" />
+    <path d="M300 -10 L 285 290" stroke="#f3ebda" stroke-width="9" fill="none" />
+    <text x="40" y="150" font-family="Source Serif 4 Variable, Georgia, serif" font-size="12" fill="#4e555b" transform="rotate(-6.8 40 150)">rue du Général Leclerc</text>
+    <path d="M232 132 L 232 104" stroke="#151515" stroke-width="2.5" />
+    <path d="M232 104 l9 -12 v-26 l-9 -12 l-9 12 v26 z" fill="#C9241A" stroke="#151515" stroke-width="2" />
+  </svg>
+  <p class="absolute left-3 top-3 bg-creme px-2.5 py-1 text-[.9rem] border border-noir">{SITE.adresseTexte}</p>
+  <div class="absolute left-3 right-3 bottom-3 flex flex-wrap gap-2">
+    <button type="button" class="btn btn-creme" data-charger-carte>Afficher la carte Google</button>
+  </div>
+</div>
+<p class="mt-2 text-[.9rem] text-zinc-fonce">La carte Google ne se charge qu’après votre clic.</p>
+<script>
+  import { SITE } from '../data/site';
+  document.querySelectorAll<HTMLElement>('[data-carte]').forEach((box) => {
+    box.querySelector('[data-charger-carte]')?.addEventListener('click', () => {
+      const f = document.createElement('iframe');
+      f.src = SITE.carte;
+      f.title = `Carte : ${SITE.nom}, ${SITE.adresseTexte}`;
+      f.loading = 'lazy';
+      f.referrerPolicy = 'no-referrer-when-downgrade';
+      f.className = 'absolute inset-0 w-full h-full border-0';
+      box.replaceChildren(f);
+      f.focus();
+    });
+  });
+</script>

@@ -1,0 +1,31 @@
+---
+import PageTexte from '../components/PageTexte.astro';
+import { SITE } from '../data/site';
+---
+<PageTexte title="Mentions légales | Tabac de la Place, Groslay" description="Mentions légales du site du Tabac de la Place, café-bar-tabac au 9 rue du Général Leclerc, 95410 Groslay : éditeur, hébergeur, propriété intellectuelle." h1="Mentions légales">
+  <h2>Éditeur du site</h2>
+  <p>{SITE.nom}, café-bar-tabac<br />
+  Forme juridique et raison sociale : <span class="ac">[À CONFIRMER]</span><br />
+  SIRET : <span class="ac">[À CONFIRMER]</span><br />
+  RCS et capital social : <span class="ac">[À CONFIRMER]</span><br />
+  N° TVA intracommunautaire : <span class="ac">[À CONFIRMER]</span><br />
+  Adresse : {SITE.adresseTexte}<br />
+  Téléphone : <a href={`tel:${SITE.telLien}`}>{SITE.telAffiche}</a><br />
+  E-mail : <span class="ac">[À CONFIRMER]</span></p>
+  <p>Directeur de la publication : <span class="ac">[À CONFIRMER]</span></p>
+
+  <h2>Hébergeur</h2>
+  <p>Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, États-Unis. <a href="https://vercel.com" target="_blank" rel="noopener">vercel.com</a></p>
+
+  <h2>Propriété intellectuelle</h2>
+  <p>Les textes et éléments graphiques de ce site appartiennent au {SITE.nom}, sauf mention contraire. L’enseigne « carotte » du site est un dessin original : ce n’est pas un logo officiel. Les extraits d’avis proviennent de la fiche Google de l’établissement.</p>
+
+  <h2>Horaires</h2>
+  <p>Les horaires et fermetures exceptionnelles sont donnés de bonne foi et mis à jour par l’équipe du café. En cas de doute, un appel au {SITE.telAffiche} permet de vérifier avant de se déplacer.</p>
+
+  <h2>Santé</h2>
+  <p>L’abus d’alcool est dangereux pour la santé, à consommer avec modération. La vente de tabac et d’alcool est interdite aux mineurs.</p>
+
+  <h2>Données personnelles</h2>
+  <p>Voir la <a href="/confidentialite/">politique de confidentialité</a>.</p>
+</PageTexte>

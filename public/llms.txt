@@ -1,0 +1,12 @@
+# Tabac de la Place (Groslay)
+
+> Café-bar-tabac du centre-ville de Groslay (Val-d'Oise), au 9 rue du Général Leclerc, 95410 Groslay. Repris il y a environ trois ans par deux jeunes gérants. Café dès le matin, bière, vin, spiritueux, tabac, jeux d'arcade. Note Google 4,4/5 sur 70 avis.
+
+- Téléphone : 01 39 83 32 90
+- Horaires habituels (fiche Google, à confirmer) : lundi au vendredi 07h00–20h00 ; samedi 08h00–20h00 ; dimanche 07h00–20h00
+- Fermetures exceptionnelles : publiées sur l'affichette du jour de la page d'accueil
+- Paiement : carte bancaire, sans contact
+- Communes voisines : Montmorency, Saint-Brice-sous-Forêt, Sarcelles, Deuil-la-Barre, Montmagny, Domont, Ézanville
+
+## Pages
+- [Accueil](https://tabac-de-la-place-groslay.vercel.app/) : tableau du jour, café-bar, tabac et services, gérants, avis, horaires et accès

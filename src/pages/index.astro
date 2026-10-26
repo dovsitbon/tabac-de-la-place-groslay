@@ -1,0 +1,276 @@
+---
+import Base from '../layouts/Base.astro';
+import Statut from '../components/Statut.astro';
+import Photo from '../components/Photo.astro';
+import CarteFacade from '../components/CarteFacade.astro';
+import { SITE, HORAIRES, AVIS, LOI_EVIN, fmtPlages } from '../data/site';
+import aujourdhui from '../data/aujourdhui.json';
+import servicesData from '../data/services.json';
+import { dateCourte, dateLongue, type Aujourdhui } from '../scripts/horaires';
+
+const D = aujourdhui as Aujourdhui;
+const services = (servicesData.services ?? []) as string[];
+
+// Fermetures et horaires modifiés à afficher (les dates passées sont masquées en JS).
+const periode = (du: string, au?: string) => (!au || au === du ? `le ${dateLongue(du)}` : `du ${dateCourte(du)} au ${dateLongue(au)}`);
+const evenementsHoraires = [
+  ...(D.fermetures ?? []).map((f) => ({ tri: f.du, au: f.au || f.du, titre: `Fermé ${periode(f.du, f.au)}`, motif: f.motif })),
+  ...(D.horairesModifies ?? []).map((m) => {
+    const plages = (m.plages ?? (m.ouvre && m.ferme ? [[m.ouvre, m.ferme]] : [])) as [string, string][];
+    return { tri: m.date, au: m.date, titre: `${periode(m.date)} : ${plages.length ? fmtPlages(plages) : 'fermé'}`, motif: m.motif };
+  }),
+].filter((e) => e.au >= new Date().toISOString().slice(0, 10)).sort((a, b) => a.tri.localeCompare(b.tri));
+const majLe = D.misAJourLe ? dateLongue(D.misAJourLe) : '';
+
+const sousBocks = [
+  { t: 'Café dès 7h', s: '8h le samedi', ton: 'creme' },
+  { t: 'Le Monaco', s: 'cité par les habitués', ton: 'rouge' },
+  { t: 'Bière, vin, spiritueux', s: 'au comptoir', ton: 'creme' },
+  { t: 'Jeux d’arcade', s: 'sur place', ton: 'noir' },
+];
+
+const faq = [
+  ['Le Tabac de la Place est-il ouvert le dimanche ?', 'Oui, de 7h à 20h selon les horaires affichés sur Google. Les fermetures exceptionnelles sont annoncées sur l’affichette du jour, en haut de cette page.'],
+  ['À quelle heure ouvre le café le matin ?', 'À 7h du lundi au vendredi et le dimanche, à 8h le samedi. Fermeture à 20h tous les jours.'],
+  ['Peut-on payer par carte ?', 'Oui : carte bancaire et paiement sans contact.'],
+  ['Où se trouve le Tabac de la Place ?', 'Au 9 rue du Général Leclerc, dans le centre-ville de Groslay (95410), dans le Val-d’Oise. Téléphone : 01 39 83 32 90.'],
+];
+const faqLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faq.map(([q, r]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: r } })),
+};
+---
+<Base
+  title="Tabac de la Place, café-bar-tabac à Groslay (95410)"
+  description="Café-bar-tabac du centre de Groslay, 9 rue du Général Leclerc : café dès 7h, un verre en fin de journée, tabac. Horaires du jour et fermetures à jour."
+>
+  <script type="application/ld+json" set:html={JSON.stringify(faqLd)} slot="head" />
+
+  <!-- HERO : titre + tableau du jour -->
+  <section class="wrap pt-10 pb-16 md:pt-16 md:pb-24 grid gap-12 lg:gap-16 lg:grid-cols-[1.05fr_.95fr] items-start" aria-labelledby="titre">
+    <div class="lg:pt-6">
+      <h1 id="titre" class="uppercase text-[2.9rem] sm:text-[4.4rem] lg:text-[5.6rem] leading-[.95] max-w-[12ch]">Le café de la place, au cœur de Groslay</h1>
+      <p class="mt-6 md:mt-7 text-[1.1rem] md:text-[1.25rem] max-w-[36rem]">
+        Café-bar-tabac au {SITE.adresse.rue}, repris il y a environ trois ans par deux jeunes gérants. Le café le matin, un verre en fin de journée, le tabac au comptoir.
+      </p>
+      <Statut class="mt-6 text-[1.1rem]" />
+      <div class="mt-5 hidden md:flex flex-wrap gap-3">
+        <a href={`tel:${SITE.telLien}`} class="btn btn-rouge">Appeler le {SITE.telAffiche}</a>
+        <a href={SITE.itineraire} class="btn btn-creme" target="_blank" rel="noopener">Itinéraire</a>
+      </div>
+    </div>
+
+    <!-- Tableau du jour : contenu dans src/data/aujourdhui.json -->
+    <aside class="affichette papier scotch relative px-6 pt-10 pb-7 md:px-9 md:pt-12 md:pb-9 max-w-[34rem] w-full justify-self-center lg:justify-self-end" data-tableau aria-labelledby="tableau-titre">
+      <h2 id="tableau-titre" class="text-[2.1rem] md:text-[2.5rem] text-carotte">Aujourd’hui au café</h2>
+      <p class="italic text-zinc-fonce text-[1.05rem] first-letter:uppercase" data-auj-date>Horaires de la semaine plus bas</p>
+
+      <p class="mt-6 font-affiche text-[3.4rem] sm:text-[4.4rem] leading-none tabular-nums" data-auj-heures>7h00–20h00</p>
+      <p class="mt-1 text-[.95rem]">Horaires Google <span class="ac">[À CONFIRMER avec les gérants]</span></p>
+
+      <p class="exception mt-5 font-affiche text-[1.5rem] leading-tight text-creme bg-carotte px-3 py-2" data-auj-exception hidden></p>
+
+      <div class="mt-6 border-t-2 border-dashed border-noir/40 pt-4">
+        <ul class="annonces space-y-2 text-[1.1rem]" data-auj-annonces hidden></ul>
+        <p class="text-[1.05rem]" data-auj-vide>Pas d’annonce particulière aujourd’hui : horaires habituels.</p>
+      </div>
+      <p class="mt-4 text-[1rem] font-semibold" data-dem-heures></p>
+      <p class="mt-5 text-[.85rem] text-zinc-fonce">Affichette mise à jour {majLe ? `le ${majLe}` : ''} par l’équipe du café.</p>
+    </aside>
+  </section>
+
+  <!-- LE CAFÉ-BAR -->
+  <section id="cafe" class="border-t-2 border-noir py-16 md:py-24" aria-labelledby="cafe-titre">
+    <div class="wrap grid gap-12 lg:grid-cols-[1fr_1.1fr] items-center">
+      <div>
+        <h2 id="cafe-titre" class="text-[2.6rem] md:text-[3.6rem] uppercase">Le café-bar</h2>
+        <div class="mt-6 space-y-4 text-[1.1rem] max-w-[34rem]">
+          <p>Le matin, le café est servi dès 7h, à 8h le samedi. Un express au comptoir avant de partir, ou le temps de s’asseoir.</p>
+          <p>En fin de journée, on passe boire un verre entre voisins ou entre amis : bière, vin, spiritueux, et le Monaco que plusieurs habitués citent dans leurs avis.</p>
+          <p>Terrasse : <span class="ac">[À CONFIRMER]</span></p>
+        </div>
+        <p class="mt-6 text-[.9rem] text-zinc-fonce max-w-[34rem]">{LOI_EVIN}</p>
+      </div>
+      <ul class="bocks grid grid-cols-2 gap-x-4 gap-y-6 sm:gap-x-8 max-w-[34rem] w-full justify-self-center" aria-label="Au comptoir">
+        {sousBocks.map((b, i) => (
+          <li class={`bock bock-${b.ton}`} style={`--r:${[-5, 4, 3, -4][i]}deg`}>
+            <span class="font-affiche text-[1.45rem] sm:text-[1.9rem] leading-[1.02]">{b.t}</span>
+            <span class="mt-1 text-[.9rem] sm:text-[1rem] italic">{b.s}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+    <div class="wrap mt-14 grid gap-4 md:grid-cols-[1.6fr_1fr]">
+      <Photo numero="1" ton="zinc" class="aspect-[16/10] md:aspect-auto md:min-h-[22rem]" legende="Le comptoir en zinc vu depuis l’entrée, lumière du matin, une tasse de café posée au premier plan." />
+      <Photo numero="2" ton="rouge" class="aspect-[16/10] md:aspect-auto" legende="La façade et l’enseigne carotte depuis le trottoir d’en face, rue du Général Leclerc." />
+    </div>
+  </section>
+
+  <!-- TABAC & SERVICES -->
+  <section id="tabac" class="sombre bg-zinc-fonce text-creme py-16 md:py-24" aria-labelledby="tabac-titre">
+    <div class="wrap grid gap-12 lg:grid-cols-[1fr_auto] items-start">
+      <div class="max-w-[36rem]">
+        <h2 id="tabac-titre" class="text-[2.6rem] md:text-[3.6rem] uppercase">Le tabac et les services</h2>
+        <div class="mt-6 space-y-4 text-[1.1rem]">
+          <p>Le tabac se prend au comptoir, au même endroit que le café.</p>
+          <p>La liste des services de jeux et de proximité est en cours de vérification avec les gérants. Elle sera publiée ici une fois confirmée.</p>
+          <p>D’ici là, pour savoir si un service est proposé, le plus simple est d’appeler le <a href={`tel:${SITE.telLien}`} class="underline underline-offset-4 decoration-2">{SITE.telAffiche}</a>.</p>
+        </div>
+      </div>
+      <div class="ticket papier w-full max-w-[22rem] justify-self-center lg:justify-self-end px-6 py-8 text-noir" role="group" aria-label="Ticket : tabac et services">
+        <p class="text-center font-affiche text-[1.5rem] leading-none">{SITE.nom}</p>
+        <p class="text-center text-[.85rem] mt-1">{SITE.adresse.rue}<br />{SITE.adresse.cp} {SITE.adresse.ville} · Tél. {SITE.telAffiche}</p>
+        <ul class="mt-5 border-y-2 border-dashed border-noir/50 py-3 space-y-1.5 text-[1rem]">
+          <li class="ligne"><span>Tabac</span><span>au comptoir</span></li>
+          <li class="ligne"><span>Jeux d’arcade</span><span>sur place</span></li>
+          <li class="ligne"><span>Carte bancaire</span><span>oui</span></li>
+          <li class="ligne"><span>Sans contact</span><span>oui</span></li>
+          {services.map((s) => <li class="ligne"><span>{s}</span><span>oui</span></li>)}
+        </ul>
+        {services.length === 0 && (
+          <p class="mt-3 text-[.95rem]">Jeux, timbres, recharges et autres services : <span class="ac">[À CONFIRMER]</span></p>
+        )}
+        <p class="mt-4 text-center text-[.85rem]">Vente de tabac interdite aux moins de 18 ans</p>
+        <p class="mt-1 text-center text-[.85rem] italic">Merci de votre visite</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- LES GÉRANTS -->
+  <section id="gerants" class="sombre bg-noir text-creme py-16 md:py-24" aria-labelledby="gerants-titre">
+    <div class="wrap grid gap-12 lg:grid-cols-[1fr_1.15fr] items-center">
+      <div class="max-w-[34rem]">
+        <h2 id="gerants-titre" class="text-[2.6rem] md:text-[3.6rem] uppercase">Deux jeunes gérants, depuis trois ans</h2>
+        <div class="mt-6 space-y-4 text-[1.1rem]">
+          <p>Le Tabac de la Place a changé de mains il y a environ trois ans. Deux jeunes gérants l’ont repris, et les habitués en parlent dans leurs avis : un accueil souriant, une ambiance familiale.</p>
+          <p>Leurs prénoms : <span class="ac">[À CONFIRMER]</span></p>
+          <p>Le café est aussi un lieu de rencontre du centre-ville : un élu y a déjà tenu sa permanence.</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <Photo numero="3" ton="rouge" class="aspect-[4/5]" legende="Premier gérant derrière le comptoir, de face, sourire naturel. Prénom à confirmer." />
+        <Photo numero="4" ton="noir" class="aspect-[4/5] translate-y-6 border-creme" legende="Second gérant, même cadrage, même lumière. Prénom à confirmer." />
+      </div>
+    </div>
+  </section>
+
+  <!-- AVIS -->
+  <section id="avis" class="py-16 md:py-24" aria-labelledby="avis-titre">
+    <div class="wrap grid gap-12 lg:grid-cols-[19rem_1fr] items-start">
+      <div>
+        <h2 id="avis-titre" class="text-[2.6rem] md:text-[3.6rem] uppercase">Ce que disent les clients</h2>
+        <p class="mt-6 flex items-end gap-3">
+          <span class="font-affiche text-[6.5rem] md:text-[8rem] leading-[.8] text-carotte">{SITE.note}</span>
+          <span class="pb-1 text-[1.1rem] leading-snug">sur 5<br />{SITE.nbAvis} avis Google</span>
+        </p>
+        <a href={SITE.avisGoogle} target="_blank" rel="noopener" class="mt-6 inline-flex min-h-[44px] items-center underline underline-offset-4 decoration-2 decoration-carotte font-semibold">Lire les avis sur Google Maps</a>
+      </div>
+      <ul class="avis grid gap-6 sm:grid-cols-2">
+        {AVIS.map((a, i) => (
+          <li class="carre-bock" style={`--r:${[-2, 1.5, 2, -1.5][i]}deg`}>
+            <blockquote class="text-[1.08rem] leading-relaxed">« {a} »</blockquote>
+            <p class="mt-4 text-[.9rem] font-semibold">Avis Google</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- INFOS PRATIQUES -->
+  <section id="infos" class="border-t-2 border-noir py-16 md:py-24" aria-labelledby="infos-titre">
+    <div class="wrap">
+      <h2 id="infos-titre" class="text-[2.6rem] md:text-[3.6rem] uppercase">Horaires et accès</h2>
+      <div class="mt-10 grid gap-12 lg:grid-cols-2">
+        <div>
+          <table class="horaires w-full max-w-[30rem] text-[1.1rem]">
+            <caption class="text-left text-[.95rem] pb-3">Horaires habituels, d’après la fiche Google <span class="ac">[À CONFIRMER avec les gérants]</span></caption>
+            <tbody>
+              {HORAIRES.map((h) => (
+                <tr data-jour={h.jour}><th scope="row" class="text-left font-semibold">{h.nom}</th><td class="text-right tabular-nums">{fmtPlages(h.plages)}</td></tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div class="papier scotch mt-12 px-6 pt-9 pb-6 max-w-[30rem] -rotate-1" data-fermetures>
+            <h3 class="text-[1.7rem] text-carotte">Fermetures exceptionnelles</h3>
+            <ul class="mt-3 space-y-3">
+              {evenementsHoraires.map((e) => (
+                <li data-au={e.au}><strong class="first-letter:uppercase block">{e.titre}</strong>{e.motif && <span>{e.motif}</span>}</li>
+              ))}
+            </ul>
+            <p data-aucune hidden={evenementsHoraires.length > 0}>Aucune fermeture exceptionnelle annoncée pour le moment.</p>
+            <p class="mt-4 text-[.85rem] text-zinc-fonce">Mise à jour {majLe ? `le ${majLe}` : ''}. En cas de doute, appelez avant de passer.</p>
+          </div>
+        </div>
+
+        <div>
+          <p class="numero font-affiche text-carotte leading-[.78]" aria-hidden="true">9</p>
+          <address class="not-italic text-[1.25rem] mt-4">
+            <strong class="font-affiche font-normal text-[1.7rem] block leading-tight">{SITE.adresse.rue}</strong>
+            {SITE.adresse.cp} {SITE.adresse.ville}, centre-ville<br />
+            <a href={`tel:${SITE.telLien}`} class="inline-flex min-h-[44px] items-center underline underline-offset-4 decoration-2">{SITE.telAffiche}</a>
+          </address>
+          <p class="mt-3 text-[1.05rem]">Paiement : carte bancaire, sans contact.<br />Stationnement à proximité : <span class="ac">[À CONFIRMER]</span></p>
+          <p class="mt-3 text-[1.05rem] max-w-[34rem]">Depuis Montmorency, Deuil-la-Barre, Montmagny, Saint-Brice-sous-Forêt, Sarcelles, Domont ou Ézanville : direction le centre de Groslay, rue du Général Leclerc.</p>
+          <div class="mt-6"><CarteFacade /></div>
+          <a href={SITE.itineraire} target="_blank" rel="noopener" class="btn btn-creme mt-4">Itinéraire Google Maps</a>
+        </div>
+      </div>
+
+      <div class="mt-16 max-w-[48rem]">
+        <h3 class="text-[1.9rem]">Questions fréquentes</h3>
+        <dl class="mt-4 divide-y-2 divide-dashed divide-noir/30 border-y-2 border-dashed border-noir/30">
+          {faq.map(([q, r]) => (
+            <div class="py-4"><dt class="font-semibold text-[1.1rem]">{q}</dt><dd class="mt-1">{r}</dd></div>
+          ))}
+        </dl>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .affichette { transform: rotate(1.4deg); }
+  @media (prefers-reduced-motion: no-preference) {
+    .affichette { animation: pose .7s cubic-bezier(.2, .8, .3, 1.15) .15s both; }
+    @keyframes pose { from { opacity: 0; transform: translateY(-18px) rotate(-2deg); } to { opacity: 1; transform: rotate(1.4deg); } }
+  }
+  .affichette[data-ferme='oui'] [data-auj-heures] { color: var(--color-carotte); }
+  .annonces li { padding-left: 1.1rem; position: relative; }
+  .annonces li::before { content: ''; position: absolute; left: 0; top: .55em; width: .55rem; height: .55rem; background: var(--color-carotte); }
+  .annonces li { background: linear-gradient(transparent 55%, var(--color-jaune) 55% 92%, transparent 92%); }
+
+  .bock {
+    --r: 0deg; aspect-ratio: 1; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 14%; transform: rotate(var(--r)); border: 2px solid var(--color-noir);
+    box-shadow: inset 0 0 0 7px var(--bg), inset 0 0 0 9px currentColor, 0 8px 14px -10px rgb(0 0 0 / .5);
+  }
+  .bock-creme { --bg: var(--color-creme); background: var(--bg); color: var(--color-noir); }
+  .bock-rouge { --bg: var(--color-carotte); background: var(--bg); color: var(--color-creme); }
+  .bock-noir { --bg: var(--color-noir); background: var(--bg); color: var(--color-creme); }
+  .bock:nth-child(even) { margin-top: 2rem; }
+
+  .ticket { font-variant-numeric: tabular-nums;
+    --dent: 8px;
+    -webkit-mask: conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / calc(2 * var(--dent)) 51% repeat-x,
+                  conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--dent)) 51% repeat-x;
+    mask: conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / calc(2 * var(--dent)) 51% repeat-x,
+          conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--dent)) 51% repeat-x;
+    transform: rotate(-1.2deg);
+  }
+  .ligne { display: flex; gap: .5rem; align-items: baseline; }
+  .ligne span:first-child { white-space: nowrap; }
+  .ligne span:last-child { margin-left: auto; text-align: right; }
+
+  .carre-bock {
+    --r: 0deg; background: var(--color-creme); padding: 1.6rem 1.5rem 1.4rem; border-radius: 12px; border: 2px solid var(--color-noir);
+    box-shadow: inset 0 0 0 6px var(--color-creme), inset 0 0 0 8px var(--color-carotte); transform: rotate(var(--r));
+  }
+  .numero { font-size: clamp(9rem, 26vw, 17rem); }
+
+  .horaires tr { border-bottom: 1px solid rgb(21 21 21 / .25); }
+  .horaires th, .horaires td { padding: .7rem .5rem; }
+  .horaires tr[aria-current='date'] { background: var(--color-jaune); border-bottom-color: var(--color-noir); }
+  .horaires tr[aria-current='date'] th::after { content: ' (aujourd’hui)'; font-weight: 400; font-style: italic; }
+</style>
